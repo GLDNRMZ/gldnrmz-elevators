@@ -87,7 +87,8 @@ local function openElevatorMenu(elevator)
 
     for _, floor in ipairs(elevator) do
         local distance = #(playerCoords - floor.coords)
-        local isCurrentFloor = distance < 1.5 -- Adjust range as needed to determine the current floor
+        local radius = floor.radius or (Config and Config.DefaultRadius) or 1.0
+        local isCurrentFloor = distance < radius
 
         -- Determine menu title and description based on configuration
         local title, description
@@ -141,14 +142,15 @@ Citizen.CreateThread(function()
         for name, elevator in pairs(Config.Elevators) do
             for _, floor in ipairs(elevator) do
                 local distance = #(playerCoords - floor.coords)
+                local radius = floor.radius or (Config and Config.DefaultRadius) or 1.0
 
-                if distance < 1.0 and canAccessFloor(floor) then
+                if distance < radius and canAccessFloor(floor) then
                     isNearElevator = true
                     sleep = 0
                     
                     if not shownText then
                         local text = floor.prompt or "Use Elevator"
-                        lib.showTextUI('[E] ' .. text)
+                        exports['arp_ui']:Show('E', text)
                         shownText = true
                     end
 
@@ -160,7 +162,7 @@ Citizen.CreateThread(function()
         end
 
         if not isNearElevator and shownText then
-            lib.hideTextUI()
+            exports['arp_ui']:Hide()
             shownText = false
         end
 

@@ -1,6 +1,7 @@
 Config = {}
 
 Config.WaitTime = 2000 -- Time in milliseconds for the teleportation to complete
+Config.DefaultRadius = 1.0
 
 Config.Elevators = {
     -- LSPDPDMainElevator = {   
@@ -162,13 +163,53 @@ Config.Elevators = {
         },
     },
 
-    PDTRAINING = {
+    lppd = {
         {
-            coords = vec3(471.92, -979.34, 30.84),
+            coords = vec3(-467.21, -1075.27, 25.17 ),
+            heading = 1.37,
+            level = "LPPD 1st Floor",
+            label = "",
+            prompt = "Use Elevator",
+            jobs = {
+                ["police"] = 0,
+                ["fib"] = 0,
+                ["doj"] = 0,
+            },
+        },
+        {
+            coords = vec3(-467.31, -1075.44, 30.05),
+            heading = 356.42,
+            level = "LPPD 2nd Floor",
+            label = "",
+            prompt = "Use Elevator",
+            jobs = {
+                ["police"] = 0,
+                ["fib"] = 0,
+                ["doj"] = 0,
+            },
+        },
+        {
+            coords = vec3(-457.48, -1021.63, 64.61 ),
+            heading = 96.98,
+            level = "LPPD Roof Access",
+            label = "",
+            prompt = "Use Elevator",
+            jobs = {
+                ["police"] = 0,
+                ["fib"] = 0,
+                ["doj"] = 0,
+            },
+        },
+    },
+
+    PDTRAINING0 = {
+        {
+            coords = vec3(-458.06, -1067.19, 25.33 ),
             heading = 60.74,
             level = "LSPD Training Office",
             label = "",
-            prompt = "Go Train",
+            prompt = "Go to Training Center",
+            radius = 2.5,
             jobs = {
                 ["police"] = 0,
                 ["sheriff"] = 0,
@@ -181,6 +222,7 @@ Config.Elevators = {
             level = "Training Center",
             label = "",
             prompt = "Return To MRPD",
+            radius = 2.5,
             jobs = {
                 ["police"] = 0,
                 ["sheriff"] = 0,
@@ -291,6 +333,11 @@ Config.Elevators = {
             level = "Exit House",
             label = "",
             prompt = "Enter",
+            jobs = {
+                ["police"] = 0,
+                ["sheriff"] = 0,
+                ["ambulance"] = 0,
+            },
         },
         {
             coords = vec3(346.48, -1013.24, -99.2),
@@ -298,6 +345,11 @@ Config.Elevators = {
             level = "Enter House",
             label = "",
             prompt = "Exit",
+            jobs = {
+                ["police"] = 0,
+                ["sheriff"] = 0,
+                ["ambulance"] = 0,
+            },
         },
     },
 
