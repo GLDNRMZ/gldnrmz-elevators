@@ -259,6 +259,8 @@ RegisterCommand("offset", function()
 
     local result = string.format("vec4(%.2f, %.2f, %.2f, %.2f)", offset.x, offset.y, offset.z, playerHeading)
     print("^2[Offset]^0 " .. result)
+    lib.setClipboard(result)
+    QBCore.Functions.Notify("Offset copied to clipboard!", "success")
 
     if shellObj then
         DeleteObject(shellObj)
