@@ -1,42 +1,43 @@
 Config = {}
 
+Config.TextUI = "arp_ui" -- Options: "qb-core", "ox_lib", "cd_drawtextui", "arp_ui"
+
 Config.WaitTime = 2000 -- Time in milliseconds for the teleportation to complete
 Config.DefaultRadius = 1.0
 
 Config.Elevators = {
-    -- LSPDPDMainElevator = {   
-        
-    --     -- ExampleBuilding = {
-    --     --     {
-    --     --         coords = vector3(100.0, 200.0, 30.0), heading = 90.0, level = "Floor 1", label = "Lobby",
-    --     --         jobs = {
-    --     --             ["police"] = 0, -- Minimum grade 0 for police job
-    --     --             ["ambulance"] = 1, -- Minimum grade 1 for ambulance job
-    --     --         },
-    --     --         items = {"elevator_key", "access_card"}, -- Requires at least one of these items
-    --     --         citizenIDs = {"ABC12345", "DEF67890"}, -- List of allowed Citizen IDs
-    --     --         jobAndItem = false, -- Either a valid job OR one of the items is sufficient for access
-    --     --     },
-    --     --     {
-    --     --         coords = vector3(110.0, 210.0, 40.0), heading = 180.0, level = "Floor 2", label = "Office Floor",
-    --     --         jobs = {
-    --     --             ["police"] = 2, -- Minimum grade 2 for police job
-    --     --         },
-    --     --         items = {"office_key"}, -- Requires at least one of these items
-    --     --         citizenIDs = {"XYZ98765"}, -- List of allowed Citizen IDs
-    --     --         jobAndItem = true, -- Must have BOTH a valid job and one of the items to access this floor
-    --     --     },
-    --     --     {
-    --     --         coords = vector3(120.0, 220.0, 50.0), heading = 270.0, level = "Floor 3", label = "Restricted Area",
-    --     --         jobs = {
-    --     --             ["security"] = 3, -- Minimum grade 3 for security job
-    --     --         },
-    --     --         items = {"restricted_card"}, -- Requires this specific item
-    --     --         citizenIDs = {}, -- No specific Citizen ID required for this floor
-    --     --         jobAndItem = true, -- Must have BOTH a valid job and the item
-    --     --     },
-    --     -- },
-
+    -- LSPDPDMainElevator = {    
+    --     ExampleBuilding = {
+    --         {
+    --             coords = vector3(100.0, 200.0, 30.0), heading = 90.0, level = "Floor 1", label = "Lobby",
+    --             jobs = {
+    --                 ["police"] = 0, -- Minimum grade 0 for police job
+    --                 ["ambulance"] = 1, -- Minimum grade 1 for ambulance job
+    --             },
+    --             items = {"elevator_key", "access_card"}, -- Requires at least one of these items
+    --             citizenIDs = {"ABC12345", "DEF67890"}, -- List of allowed Citizen IDs
+    --             jobAndItem = false, -- Either a valid job OR one of the items is sufficient for access
+    --         },
+    --         {
+    --             coords = vector3(110.0, 210.0, 40.0), heading = 180.0, level = "Floor 2", label = "Office Floor",
+    --             jobs = {
+    --                 ["police"] = 2, -- Minimum grade 2 for police job
+    --             },
+    --             items = {"office_key"}, -- Requires at least one of these items
+    --             citizenIDs = {"XYZ98765"}, -- List of allowed Citizen IDs
+    --             jobAndItem = true, -- Must have BOTH a valid job and one of the items to access this floor
+    --         },
+    --         {
+    --             coords = vector3(120.0, 220.0, 50.0), heading = 270.0, level = "Floor 3", label = "Restricted Area",
+    --             jobs = {
+    --                 ["security"] = 3, -- Minimum grade 3 for security job
+    --             },
+    --             items = {"restricted_card"}, -- Requires this specific item
+    --             citizenIDs = {}, -- No specific Citizen ID required for this floor
+    --             jobAndItem = true, -- Must have BOTH a valid job and the item
+    --         },
+    --     },
+    -- },
     LosSantosMedical = {
         {
             coords = vector3(90.68, -399.31, 84.4),

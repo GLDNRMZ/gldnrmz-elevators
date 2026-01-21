@@ -13,6 +13,30 @@ local function tableContains(table, value)
     return false
 end
 
+local function ShowTextUI(text)
+    if Config.TextUI == "qb-core" then
+        exports['qb-core']:DrawText(text, 'left')
+    elseif Config.TextUI == "ox_lib" then
+        lib.showTextUI(text)
+    elseif Config.TextUI == "cd_drawtextui" then
+        exports['cd_drawtextui']:ShowTextUI('show', text)
+    elseif Config.TextUI == "arp_ui" then
+        exports['arp_ui']:Show('E', text)
+    end
+end
+
+local function HideTextUI()
+    if Config.TextUI == "qb-core" then
+        exports['qb-core']:HideText()
+    elseif Config.TextUI == "ox_lib" then
+        lib.hideTextUI()
+    elseif Config.TextUI == "cd_drawtextui" then
+        exports['cd_drawtextui']:HideTextUI('hide')
+    elseif Config.TextUI == "arp_ui" then
+        exports['arp_ui']:Hide()
+    end
+end
+
 local function canAccessFloor(floor)
     local PlayerData = QBCore.Functions.GetPlayerData()
 
@@ -150,7 +174,11 @@ Citizen.CreateThread(function()
                     
                     if not shownText then
                         local text = floor.prompt or "Use Elevator"
-                        exports['arp_ui']:Show('E', text)
+                        if Config.TextUI == "arp_ui" then
+                            ShowTextUI(text)
+                        else
+                            ShowTextUI("[E] " .. text)
+                        end
                         shownText = true
                     end
 
@@ -162,7 +190,7 @@ Citizen.CreateThread(function()
         end
 
         if not isNearElevator and shownText then
-            exports['arp_ui']:Hide()
+            HideTextUI()
             shownText = false
         end
 
