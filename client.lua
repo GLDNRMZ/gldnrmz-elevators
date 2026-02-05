@@ -1,7 +1,11 @@
 -- Client Script (client.lua)
 
--- Ensure QBCore is initialized
-local QBCore = exports['qb-core']:GetCoreObject()
+local Bridge = exports['community_bridge']:Bridge()
+local Framework = Bridge and Bridge.Framework or nil
+local Inventory = Bridge and Bridge.Inventory or nil
+local HelpText = Bridge and Bridge.HelpText or nil
+
+local shownText = false
 
 -- Helper function to check if a value exists in a table
 local function tableContains(table, value)
@@ -14,35 +18,59 @@ local function tableContains(table, value)
 end
 
 local function ShowTextUI(text)
-    if Config.TextUI == "qb-core" then
-        exports['qb-core']:DrawText(text, 'left')
-    elseif Config.TextUI == "ox_lib" then
-        lib.showTextUI(text)
-    elseif Config.TextUI == "cd_drawtextui" then
-        exports['cd_drawtextui']:ShowTextUI('show', text)
-    elseif Config.TextUI == "arp_ui" then
-        exports['arp_ui']:Show('E', text)
+    if Config.TextUI == 'arp_ui' then
+        return exports['arp_ui']:Show('E', text)
+    end
+    if HelpText and HelpText.ShowHelpText then
+        return HelpText.ShowHelpText(text, 'left')
+    end
+    if Bridge and Bridge.Notify and Bridge.Notify.ShowHelpText then
+        return Bridge.Notify.ShowHelpText(text, 'left')
     end
 end
 
 local function HideTextUI()
-    if Config.TextUI == "qb-core" then
-        exports['qb-core']:HideText()
-    elseif Config.TextUI == "ox_lib" then
-        lib.hideTextUI()
-    elseif Config.TextUI == "cd_drawtextui" then
-        exports['cd_drawtextui']:HideTextUI('hide')
-    elseif Config.TextUI == "arp_ui" then
-        exports['arp_ui']:Hide()
+    if Config.TextUI == 'arp_ui' then
+        return exports['arp_ui']:Hide()
+    end
+    if HelpText and HelpText.HideHelpText then
+        return HelpText.HideHelpText()
+    end
+    if Bridge and Bridge.Notify and Bridge.Notify.HideHelpText then
+        return Bridge.Notify.HideHelpText()
     end
 end
 
+local function getPlayerIdentifier()
+    if Framework and Framework.GetPlayerIdentifier then
+        return Framework.GetPlayerIdentifier()
+    end
+end
+
+local function getPlayerJobData()
+    if Framework and Framework.GetPlayerJobData then
+        return Framework.GetPlayerJobData()
+    end
+    return {}
+end
+
+local function playerHasItem(item)
+    if Inventory and Inventory.HasItem then
+        return Inventory.HasItem(item)
+    end
+    if Framework and Framework.HasItem then
+        return Framework.HasItem(item)
+    end
+    return false
+end
+
 local function canAccessFloor(floor)
-    local PlayerData = QBCore.Functions.GetPlayerData()
+    local playerIdentifier = getPlayerIdentifier()
+    local jobData = getPlayerJobData()
 
     -- Check for Citizen ID
     if floor.citizenIDs and #floor.citizenIDs > 0 then
-        if not tableContains(floor.citizenIDs, PlayerData.citizenid) then
+        if not playerIdentifier or not tableContains(floor.citizenIDs, playerIdentifier) then
             return false -- Deny access if the player's Citizen ID is not allowed
         end
     end
@@ -51,7 +79,7 @@ local function canAccessFloor(floor)
     if floor.jobs then
         local hasJob = false
         for job, grade in pairs(floor.jobs) do
-            if PlayerData.job and PlayerData.job.name == job and PlayerData.job.grade.level >= grade then
+            if jobData.jobName == job and (jobData.gradeRank or 0) >= grade then
                 hasJob = true
                 break
             end
@@ -65,7 +93,7 @@ local function canAccessFloor(floor)
     if floor.items then
         local hasItem = false
         for _, item in ipairs(floor.items) do
-            if QBCore.Functions.HasItem(item) then
+            if playerHasItem(item) then
                 hasItem = true
                 break
             end
@@ -82,7 +110,7 @@ local function canAccessFloor(floor)
 
         if floor.jobs then
             for job, grade in pairs(floor.jobs) do
-                if PlayerData.job and PlayerData.job.name == job and PlayerData.job.grade.level >= grade then
+                if jobData.jobName == job and (jobData.gradeRank or 0) >= grade then
                     hasJob = true
                 end
             end
@@ -90,7 +118,7 @@ local function canAccessFloor(floor)
 
         if floor.items then
             for _, item in ipairs(floor.items) do
-                if QBCore.Functions.HasItem(item) then
+                if playerHasItem(item) then
                     hasItem = true
                 end
             end
@@ -156,7 +184,7 @@ RegisterNetEvent('elevator:teleport', function(floor)
     DoScreenFadeIn(500)
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
         local sleep = 1000
         local playerPed = PlayerPedId()
@@ -174,7 +202,7 @@ Citizen.CreateThread(function()
                     
                     if not shownText then
                         local text = floor.prompt or "Use Elevator"
-                        if Config.TextUI == "arp_ui" then
+                        if Config.TextUI == 'arp_ui' then
                             ShowTextUI(text)
                         else
                             ShowTextUI("[E] " .. text)
@@ -194,6 +222,6 @@ Citizen.CreateThread(function()
             shownText = false
         end
 
-        Citizen.Wait(sleep)
+        Wait(sleep)
     end
 end)

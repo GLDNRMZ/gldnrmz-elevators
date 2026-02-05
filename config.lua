@@ -1,6 +1,6 @@
 Config = {}
 
-Config.TextUI = "arp_ui" -- Options: "qb-core", "ox_lib", "cd_drawtextui", "arp_ui"
+Config.TextUI = "bridge" -- Options: "bridge" (community_bridge helptext), "arp_ui"
 
 Config.WaitTime = 2000 -- Time in milliseconds for the teleportation to complete
 Config.DefaultRadius = 1.0

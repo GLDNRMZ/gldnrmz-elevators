@@ -9,7 +9,8 @@ version '1.0.0'
 lua54 'yes'
 
 dependencies {
-    'ox_lib'
+    'ox_lib',
+    'community_bridge'
 }
 
 shared_scripts {
@@ -19,4 +20,8 @@ shared_scripts {
 client_scripts {
     'config.lua',
     'client.lua',
+}
+
+server_scripts {
+    'server.lua'
 }

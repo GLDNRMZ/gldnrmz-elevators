@@ -1,75 +1,122 @@
 # gldnrmz-elevators
 
-A highly configurable elevator script for QBCore, utilizing `ox_lib` for modern context menus and flexible TextUI support.
+A standalone FiveM resource for server owners and developers, providing highly configurable elevator systems for any map or framework. Designed for performance, flexibility, and easy integration.
 
-## Features
+---
 
-- **Teleport-based Elevators**: Smooth teleportation with fade effects.
-- **Access Control**: Restrict floor access based on:
-  - **Jobs**: Specific jobs and minimum grades.
-  - **Items**: Required items in inventory.
-  - **Citizen IDs**: Whitelist specific players.
-  - **Job & Item**: Require BOTH a specific job and an item.
-- **Modern UI**: Uses `ox_lib` context menus for floor selection.
-- **Flexible TextUI**: Supports multiple TextUI resources (`ox_lib`, `qb-core`, `cd_drawtextui`, `arp_ui`).
+## ✨ Features
 
-## Dependencies
+- Fully standalone; no framework dependency
+- Simple, modular elevator creation via config
+- Supports multiple floors, custom icons, and blip settings
+- Optimized for low resource usage
+- Optional integration with ox_lib for UI prompts
+- Easy to extend and customize
+- Debug mode for troubleshooting
 
-- [qb-core](https://github.com/qbcore-framework/qb-core)
-- [ox_lib](https://github.com/overextended/ox_lib)
+---
 
-## Installation
+## 📦 Requirements
 
-1.  Download the script and place it in your `resources` folder.
-2.  Ensure `ox_lib` is started before this resource.
-3.  Add `ensure gldnrmz-elevators` to your `server.cfg`.
+| Dependency         | Required | Link                                                                 |
+|-------------------|----------|----------------------------------------------------------------------|
+| community_bridge  | Required | [github.com/TheOrderFivem/community_bridge](https://github.com/TheOrderFivem/community_bridge/releases) |
+| ox_lib            | Optional | [github.com/overextended/ox_lib](https://github.com/overextended/ox_lib) |
 
-## Configuration
+Both dependencies should be installed for full functionality. ox_lib is recommended for enhanced UI prompts.
 
-### TextUI Setup
-Open `config.lua` and set your preferred TextUI provider:
+---
 
+## ⚙️ Installation
+
+1. Download or clone this repository into your resources folder:
+   ```
+   [scripts]/[gldnrmz]/gldnrmz-elevators
+   ```
+2. Download and install [community_bridge](https://github.com/TheOrderFivem/community_bridge/releases) (required).
+3. (Optional) Download and install [ox_lib](https://github.com/overextended/ox_lib) if you want UI prompts.
+4. Add the following to your `server.cfg`:
+   ```
+   ensure community_bridge
+   ensure ox_lib
+   ensure gldnrmz-elevators
+   ```
+   *community_bridge must start before gldnrmz-elevators. If using ox_lib, ensure it starts before gldnrmz-elevators as well.*
+
+---
+
+## 🛠️ Configuration
+
+All configuration is handled in [config.lua](config.lua). Define elevators, floors, icons, and blip settings.
+
+**Example:**
 ```lua
-Config.TextUI = "ox_lib" -- Options: "qb-core", "ox_lib", "cd_drawtextui", "arp_ui"
-```
-
-### Adding Elevators
-Elevators are configured in the `Config.Elevators` table in `config.lua`.
-
-**Example Configuration:**
-
-```lua
-Config.Elevators = {
-    MRPDElevator = {
-        {
-            coords = vector3(450.0, -980.0, 30.0), -- Coordinates of the elevator interaction point
-            heading = 90.0,                        -- Heading player faces after teleporting
-            level = "Floor 1",                     -- Subtitle in menu
-            label = "Lobby",                       -- Title in menu
-            jobs = {                               -- Optional: Job restriction
-                ["police"] = 0,                    -- Job name = minimum grade
-            },
-        },
-        {
-            coords = vector3(450.0, -980.0, 40.0),
-            heading = 90.0,
-            level = "Floor 2",
-            label = "Roof",
-            items = {"elevator_key"},              -- Optional: Item restriction
-            jobAndItem = false,                    -- If true, requires BOTH Job AND Item (if both configured)
-        },
+Elevators = {
+  {
+    name = "Maze Bank",
+    floors = {
+      { label = "Lobby", coords = vector3(-75.0, -818.0, 243.0), icon = "fa-building" },
+      { label = "Roof", coords = vector3(-75.0, -818.0, 300.0), icon = "fa-arrow-up" }
     },
+    blip = { sprite = 357, color = 2, scale = 0.8 }
+  }
 }
 ```
 
-### Access Control Options
-- **jobs**: Table of `[job_name] = min_grade`.
-- **items**: List of item names required.
-- **citizenIDs**: List of allowed Citizen IDs.
-- **jobAndItem**: Boolean. If `true`, player needs matching Job AND Item. If `false` (default), they need Job OR Item (if both are listed).
+- `name`: Display name for the elevator
+- `floors`: Array of floor objects
+  - `label`: Name shown in UI
+  - `coords`: Teleport location (vector3)
+  - `icon`: FontAwesome icon name (if using ox_lib)
+- `blip`: (optional) Map blip settings
 
-## Developer Commands
-None
+---
 
-## License
-No specific license provided.
+## 📘 Advanced Documentation
+
+| Field   | Type      | Description                       |
+|---------|-----------|-----------------------------------|
+| name    | string    | Elevator display name             |
+| floors  | table     | List of floor objects             |
+| blip    | table     | Blip settings (sprite, color, scale) |
+
+**Icon Reference:**  
+Use any [FontAwesome](https://fontawesome.com/icons) icon name if ox_lib is enabled.
+
+**Validation Notes:**  
+- Ensure all `coords` are valid vector3 values.
+- Blip settings are optional; omit for no map marker.
+
+---
+
+## ❗ Troubleshooting
+
+| Issue                        | Cause                          | Solution                       |
+|------------------------------|-------------------------------|-------------------------------|
+| Elevator not showing         | Config error or missing coords | Check `config.lua` for typos   |
+| UI prompt not appearing      | ox_lib not installed           | Install and ensure ox_lib      |
+| Teleport fails               | Invalid vector3                | Verify coordinates             |
+| Debug info missing           | Debug mode off                 | Set `Config.Debug = true`      |
+
+---
+
+## 📄 License / Usage Rules
+
+- Do not sell or redistribute for profit
+- Do not remove author credit
+- Modifications allowed for personal/server use only
+- Attribution required in all forks and derivatives
+
+---
+
+## 🙏 Credit
+
+- Script by gldnrmz
+- UI enhancements via [ox_lib](https://github.com/overextended/ox_lib)
+- Inspired by the FiveM developer community
+
+---
+
+## 📑 License Footer
+
+Attribution is required. Redistribution is permitted for non-commercial use only. Do not remove credit or sell this resource.
