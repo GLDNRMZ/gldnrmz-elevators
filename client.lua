@@ -1,227 +1,245 @@
--- Client Script (client.lua)
+local Config = require 'config'
 
-local Bridge = exports['community_bridge']:Bridge()
-local Framework = Bridge and Bridge.Framework or nil
-local Inventory = Bridge and Bridge.Inventory or nil
-local HelpText = Bridge and Bridge.HelpText or nil
+local INTERACT_KEY = 38 -- E
+local MENU_ID = 'gldnrmz_elevator_menu'
+local COLLISION_TIMEOUT = 5000
 
-local shownText = false
+local Bridge = Config.TextUI == 'bridge' and exports.community_bridge:Bridge() or nil
 
--- Helper function to check if a value exists in a table
-local function tableContains(table, value)
-    for _, v in ipairs(table) do
-        if v == value then
-            return true
-        end
-    end
-    return false
-end
+local insidePoints = {} -- every floor point the player is standing in
+local activePoint       -- the one that owns the prompt and the E key
+local promptText        -- text currently on screen, nil when hidden
+local busy = false      -- a menu request or trip is in progress
 
-local function ShowTextUI(text)
+-- Prompt -------------------------------------------------------------------
+
+local function hidePrompt()
+    if not promptText then return end
+
     if Config.TextUI == 'arp_ui' then
-        return exports['arp_ui']:Show('E', text)
+        -- Pass the text so only our entry is removed; Hide() alone clears every script's prompt.
+        pcall(function() exports.arp_ui:Hide(promptText) end)
+    elseif Config.TextUI == 'ox_lib' then
+        lib.hideTextUI()
+    elseif Bridge and Bridge.HelpText then
+        pcall(Bridge.HelpText.HideHelpText)
     end
-    if HelpText and HelpText.ShowHelpText then
-        return HelpText.ShowHelpText(text, 'left')
-    end
-    if Bridge and Bridge.Notify and Bridge.Notify.ShowHelpText then
-        return Bridge.Notify.ShowHelpText(text, 'left')
-    end
+
+    promptText = nil
 end
 
-local function HideTextUI()
+local function showPrompt(text)
+    if promptText == text then return end
+    hidePrompt()
+
     if Config.TextUI == 'arp_ui' then
-        return exports['arp_ui']:Hide()
+        pcall(function() exports.arp_ui:Show('E', text) end)
+    elseif Config.TextUI == 'ox_lib' then
+        lib.showTextUI(('[E] %s'):format(text))
+    elseif Bridge and Bridge.HelpText then
+        pcall(Bridge.HelpText.ShowHelpText, ('[E] %s'):format(text), 'left')
     end
-    if HelpText and HelpText.HideHelpText then
-        return HelpText.HideHelpText()
-    end
-    if Bridge and Bridge.Notify and Bridge.Notify.HideHelpText then
-        return Bridge.Notify.HideHelpText()
-    end
+
+    promptText = text
 end
 
-local function getPlayerIdentifier()
-    if Framework and Framework.GetPlayerIdentifier then
-        return Framework.GetPlayerIdentifier()
-    end
+-- Helpers ------------------------------------------------------------------
+
+-- Other scripts (e.g. gldnrmz-phas inside its haunted house) set this local state to hide our prompts.
+local function suppressed()
+    return LocalPlayer.state.hideInteractions == true
 end
 
-local function getPlayerJobData()
-    if Framework and Framework.GetPlayerJobData then
-        return Framework.GetPlayerJobData()
-    end
-    return {}
+local function canInteract()
+    local ped = cache.ped
+    return not busy
+        and not suppressed()
+        and not cache.vehicle
+        and not IsEntityDead(ped)
+        and not IsPedCuffed(ped)
+        and not IsPedRagdoll(ped)
 end
 
-local function playerHasItem(item)
-    if Inventory and Inventory.HasItem then
-        return Inventory.HasItem(item)
-    end
-    if Framework and Framework.HasItem then
-        return Framework.HasItem(item)
-    end
-    return false
+local function notify(message)
+    lib.notify({ description = message, type = 'error' })
 end
 
-local function canAccessFloor(floor)
-    local playerIdentifier = getPlayerIdentifier()
-    local jobData = getPlayerJobData()
-
-    -- Check for Citizen ID
-    if floor.citizenIDs and #floor.citizenIDs > 0 then
-        if not playerIdentifier or not tableContains(floor.citizenIDs, playerIdentifier) then
-            return false -- Deny access if the player's Citizen ID is not allowed
-        end
-    end
-
-    -- Check for jobs
-    if floor.jobs then
-        local hasJob = false
-        for job, grade in pairs(floor.jobs) do
-            if jobData.jobName == job and (jobData.gradeRank or 0) >= grade then
-                hasJob = true
-                break
-            end
-        end
-        if not hasJob then
-            return false -- Deny access if no matching job is found
-        end
-    end
-
-    -- Check for items
-    if floor.items then
-        local hasItem = false
-        for _, item in ipairs(floor.items) do
-            if playerHasItem(item) then
-                hasItem = true
-                break
-            end
-        end
-        if not hasItem then
-            return false -- Deny access if no required item is found
-        end
-    end
-
-    -- Check for both jobs and items
-    if floor.jobAndItem then
-        local hasJob = false
-        local hasItem = false
-
-        if floor.jobs then
-            for job, grade in pairs(floor.jobs) do
-                if jobData.jobName == job and (jobData.gradeRank or 0) >= grade then
-                    hasJob = true
-                end
-            end
-        end
-
-        if floor.items then
-            for _, item in ipairs(floor.items) do
-                if playerHasItem(item) then
-                    hasItem = true
-                end
-            end
-        end
-
-        if not (hasJob and hasItem) then
-            return false -- Deny access if both job and item requirements are not met
-        end
-    end
-
-    return true -- Allow access if all configured checks pass
+local function fetchAccess(point)
+    return lib.callback.await('gldnrmz-elevators:server:getAccess', false, point.elevatorId, point.floorIndex)
 end
 
+-- Ask the server whether this floor is usable and show or hide the prompt.
+local function refreshPoint(point)
+    if suppressed() then return hidePrompt() end
+    CreateThread(function()
+        local access = fetchAccess(point)
+        if activePoint ~= point then return end -- player walked off while we waited
+        if suppressed() then return hidePrompt() end
 
-local function openElevatorMenu(elevator)
-    local playerCoords = GetEntityCoords(PlayerPedId())
+        point.hasAccess = access ~= nil
+        if point.hasAccess then
+            showPrompt(point.floor.prompt or Config.Text.prompt)
+        else
+            hidePrompt()
+        end
+    end)
+end
+
+-- Teleport -----------------------------------------------------------------
+
+local function teleport(floor)
+    local ped = cache.ped
+    local coords = floor.coords
+
+    DoScreenFadeOut(500)
+    local fadeDeadline = GetGameTimer() + 1500
+    while not IsScreenFadedOut() and GetGameTimer() < fadeDeadline do Wait(0) end
+
+    local started = GetGameTimer()
+    FreezeEntityPosition(ped, true)
+    RequestCollisionAtCoord(coords.x, coords.y, coords.z)
+    SetEntityCoords(ped, coords.x, coords.y, coords.z, false, false, false, false)
+    SetEntityHeading(ped, floor.heading or 0.0)
+
+    -- Wait for the ground to load so players don't fall through interiors.
+    local collisionDeadline = GetGameTimer() + COLLISION_TIMEOUT
+    while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < collisionDeadline do
+        RequestCollisionAtCoord(coords.x, coords.y, coords.z)
+        Wait(0)
+    end
+
+    local remaining = Config.WaitTime - (GetGameTimer() - started)
+    if remaining > 0 then Wait(remaining) end
+
+    FreezeEntityPosition(ped, false)
+    DoScreenFadeIn(500)
+end
+
+local function travel(point, toIndex)
+    if busy then return end
+    busy = true
+
+    local allowed = lib.callback.await('gldnrmz-elevators:server:travel', false,
+        point.elevatorId, point.floorIndex, toIndex)
+
+    if allowed then
+        hidePrompt()
+        teleport(Config.Elevators[point.elevatorId][toIndex])
+    else
+        notify(Config.Text.denied)
+    end
+
+    busy = false
+end
+
+-- Menu ---------------------------------------------------------------------
+
+local function openMenu(point)
+    busy = true
+    local access = fetchAccess(point)
+    busy = false
+
+    if not access then
+        point.hasAccess = false
+        hidePrompt()
+        notify(Config.Text.unavailable)
+        return
+    end
+
     local options = {}
 
-    for _, floor in ipairs(elevator) do
-        local distance = #(playerCoords - floor.coords)
-        local radius = floor.radius or (Config and Config.DefaultRadius) or 1.0
-        local isCurrentFloor = distance < radius
+    for index, floor in ipairs(Config.Elevators[point.elevatorId]) do
+        local isCurrent = index == point.floorIndex
+        local allowed = access[index]
 
-        -- Determine menu title and description based on configuration
-        local title, description
-        if floor.menuFormat == "labelTop" then
-            title = floor.label or "Unknown"
-            description = (floor.level or "Unknown")
-        else -- Default: floorTop
-            title = (floor.level or "Unknown")
-            description = floor.label or "Unknown"
+        if allowed or Config.ShowLockedFloors then
+            local level, label = floor.level or ('Floor %d'):format(index), floor.label
+            local title, description = level, label
+            if floor.menuFormat == 'labelTop' and label and label ~= '' then
+                title, description = label, level
+            end
+
+            options[#options + 1] = {
+                title = title,
+                description = description ~= '' and description or nil,
+                icon = isCurrent and 'location-dot' or (allowed and 'elevator' or 'lock'),
+                disabled = isCurrent or not allowed,
+                onSelect = function() travel(point, index) end,
+            }
         end
-
-        table.insert(options, {
-            title = title,
-            description = description,
-            event = not isCurrentFloor and "elevator:teleport" or nil, -- Disable event if on current floor
-            args = floor,
-            disabled = isCurrentFloor -- Gray out the current floor
-        })
     end
 
     lib.registerContext({
-        id = 'elevator_menu',
-        title = 'Elevator Menu',
+        id = MENU_ID,
+        title = Config.Text.menuTitle,
         options = options,
     })
-
-    lib.showContext('elevator_menu')
+    lib.showContext(MENU_ID)
 end
 
+-- Points -------------------------------------------------------------------
 
-RegisterNetEvent('elevator:teleport', function(floor)
-    DoScreenFadeOut(500)
-    Wait(500)
+local function onEnter(self)
+    insidePoints[self] = true
+    activePoint = self
+    refreshPoint(self)
+end
 
-    Wait(Config.WaitTime) -- Configurable wait time
+local function onExit(self)
+    insidePoints[self] = nil
+    if activePoint ~= self then return end
 
-    SetEntityCoords(PlayerPedId(), floor.coords)
-    SetEntityHeading(PlayerPedId(), floor.heading)
+    activePoint = next(insidePoints)
+    if activePoint then
+        refreshPoint(activePoint)
+    else
+        hidePrompt()
+        if lib.getOpenContextMenu() == MENU_ID then lib.hideContext(false) end
+    end
+end
 
-    Wait(500)
-    DoScreenFadeIn(500)
+local function nearby(self)
+    if activePoint ~= self or not self.hasAccess then return end
+    if IsControlJustReleased(0, INTERACT_KEY) and canInteract() then
+        CreateThread(function() openMenu(self) end)
+    end
+end
+
+for elevatorId, floors in pairs(Config.Elevators) do
+    for floorIndex, floor in ipairs(floors) do
+        if type(floor.coords) == 'vector3' then
+            lib.points.new({
+                coords = floor.coords,
+                distance = floor.radius or Config.DefaultRadius,
+                elevatorId = elevatorId,
+                floorIndex = floorIndex,
+                floor = floor,
+                onEnter = onEnter,
+                onExit = onExit,
+                nearby = nearby,
+            })
+        end
+    end
+end
+
+-- Hide or bring back the prompt the moment another script toggles hideInteractions.
+AddStateBagChangeHandler('hideInteractions', ('player:%s'):format(cache.serverId), function(_, _, value)
+    if value then
+        hidePrompt()
+        if lib.getOpenContextMenu() == MENU_ID then lib.hideContext(false) end
+    elseif activePoint then
+        SetTimeout(0, function()
+            if activePoint and not suppressed() then refreshPoint(activePoint) end
+        end)
+    end
 end)
 
-CreateThread(function()
-    while true do
-        local sleep = 1000
-        local playerPed = PlayerPedId()
-        local playerCoords = GetEntityCoords(playerPed)
-        local isNearElevator = false
-
-        for name, elevator in pairs(Config.Elevators) do
-            for _, floor in ipairs(elevator) do
-                local distance = #(playerCoords - floor.coords)
-                local radius = floor.radius or (Config and Config.DefaultRadius) or 1.0
-
-                if distance < radius and canAccessFloor(floor) then
-                    isNearElevator = true
-                    sleep = 0
-                    
-                    if not shownText then
-                        local text = floor.prompt or "Use Elevator"
-                        if Config.TextUI == 'arp_ui' then
-                            ShowTextUI(text)
-                        else
-                            ShowTextUI("[E] " .. text)
-                        end
-                        shownText = true
-                    end
-
-                    if IsControlJustReleased(0, 38) then
-                        openElevatorMenu(elevator)
-                    end
-                end
-            end
-        end
-
-        if not isNearElevator and shownText then
-            HideTextUI()
-            shownText = false
-        end
-
-        Wait(sleep)
+-- Never leave the player frozen, blacked out, or with a stuck prompt on restart.
+AddEventHandler('onResourceStop', function(resource)
+    if resource ~= cache.resource then return end
+    hidePrompt()
+    if busy then
+        FreezeEntityPosition(cache.ped, false)
+        DoScreenFadeIn(0)
     end
 end)

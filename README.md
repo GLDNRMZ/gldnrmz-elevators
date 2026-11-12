@@ -1,122 +1,99 @@
 # gldnrmz-elevators
 
-A standalone FiveM resource for server owners and developers, providing highly configurable elevator systems for any map or framework. Designed for performance, flexibility, and easy integration.
+Configurable elevators and teleport points for FiveM. Walk up to a floor, press **E**, pick a destination from an ox_lib menu.
 
----
+## Features
 
-## ✨ Features
+- Any number of elevators, each with any number of floors
+- Per-floor access by job + minimum grade, items, and citizen ID
+- Access is checked on the server (job, items, distance, cooldown), not trusted from the client
+- Locked floors show greyed out with a lock icon (or can be hidden)
+- Uses `lib.points`: no per-frame loop while you're away from an elevator
+- Waits for collision to load before fading back in, so players don't fall through interiors
+- Blocks use while in a vehicle, dead, cuffed, or ragdolled
+- Prompt via community_bridge HelpText, ox_lib TextUI, or arp_ui
+- Startup config check: warns about missing coords, single-floor elevators, and overlapping floors
 
-- Fully standalone; no framework dependency
-- Simple, modular elevator creation via config
-- Supports multiple floors, custom icons, and blip settings
-- Optimized for low resource usage
-- Optional integration with ox_lib for UI prompts
-- Easy to extend and customize
-- Debug mode for troubleshooting
+## Requirements
 
----
+| Dependency | Link |
+|---|---|
+| OneSync | enabled on the server |
+| ox_lib (3.x) | https://github.com/overextended/ox_lib |
+| community_bridge | https://github.com/TheOrderFivem/community_bridge |
 
-## 📦 Requirements
+## Installation
 
-| Dependency         | Required | Link                                                                 |
-|-------------------|----------|----------------------------------------------------------------------|
-| community_bridge  | Required | [github.com/TheOrderFivem/community_bridge](https://github.com/TheOrderFivem/community_bridge/releases) |
-| ox_lib            | Optional | [github.com/overextended/ox_lib](https://github.com/overextended/ox_lib) |
+```
+ensure ox_lib
+ensure community_bridge
+ensure gldnrmz-elevators
+```
 
-Both dependencies should be installed for full functionality. ox_lib is recommended for enhanced UI prompts.
+## Configuration
 
----
+Everything lives in [config.lua](config.lua).
 
-## ⚙️ Installation
+| Option | Default | Description |
+|---|---|---|
+| `TextUI` | `"bridge"` | `"bridge"`, `"ox_lib"` or `"arp_ui"` |
+| `WaitTime` | `2000` | Minimum ms the screen stays black during a trip |
+| `DefaultRadius` | `1.0` | Interaction radius when a floor doesn't set one |
+| `ShowLockedFloors` | `true` | Show locked floors greyed out instead of hiding them |
+| `VersionCheck` | `true` | Check GitHub for a newer version on start |
+| `Debug` | `false` | Log every trip to the server console |
+| `Text` | | Prompt, menu title and error messages |
 
-1. Download or clone this repository into your resources folder:
-   ```
-   [scripts]/[gldnrmz]/gldnrmz-elevators
-   ```
-2. Download and install [community_bridge](https://github.com/TheOrderFivem/community_bridge/releases) (required).
-3. (Optional) Download and install [ox_lib](https://github.com/overextended/ox_lib) if you want UI prompts.
-4. Add the following to your `server.cfg`:
-   ```
-   ensure community_bridge
-   ensure ox_lib
-   ensure gldnrmz-elevators
-   ```
-   *community_bridge must start before gldnrmz-elevators. If using ox_lib, ensure it starts before gldnrmz-elevators as well.*
+### Floors
 
----
-
-## 🛠️ Configuration
-
-All configuration is handled in [config.lua](config.lua). Define elevators, floors, icons, and blip settings.
-
-**Example:**
 ```lua
-Elevators = {
-  {
-    name = "Maze Bank",
-    floors = {
-      { label = "Lobby", coords = vector3(-75.0, -818.0, 243.0), icon = "fa-building" },
-      { label = "Roof", coords = vector3(-75.0, -818.0, 300.0), icon = "fa-arrow-up" }
+Config.Elevators = {
+    MyBuilding = {
+        { coords = vec3(100.0, 200.0, 30.0), heading = 90.0, level = "Lobby", label = "Floor 0" },
+        {
+            coords = vec3(100.0, 200.0, 40.0), heading = 90.0, level = "Offices", label = "Floor 1",
+            jobs = { police = 2 },
+            items = { "office_key" },
+            jobAndItem = true,
+        },
     },
-    blip = { sprite = 357, color = 2, scale = 0.8 }
-  }
 }
 ```
 
-- `name`: Display name for the elevator
-- `floors`: Array of floor objects
-  - `label`: Name shown in UI
-  - `coords`: Teleport location (vector3)
-  - `icon`: FontAwesome icon name (if using ox_lib)
-- `blip`: (optional) Map blip settings
+| Field | Type | Description |
+|---|---|---|
+| `coords` | vector3 | **Required.** Button location and arrival point |
+| `heading` | number | Facing direction on arrival |
+| `level` | string | Floor name shown in the menu |
+| `label` | string | Extra text shown in the menu |
+| `menuFormat` | string | `"floorTop"` (default) or `"labelTop"` to swap title and description |
+| `prompt` | string | Help text when standing here |
+| `radius` | number | Interaction radius |
 
----
+### Access rules
 
-## 📘 Advanced Documentation
+A floor with no rules is open to everyone. Rules apply both to calling the elevator **from** a floor and travelling **to** it.
 
-| Field   | Type      | Description                       |
-|---------|-----------|-----------------------------------|
-| name    | string    | Elevator display name             |
-| floors  | table     | List of floor objects             |
-| blip    | table     | Blip settings (sprite, color, scale) |
+| Field | Meaning |
+|---|---|
+| `jobs = { police = 0 }` | Job name and minimum grade |
+| `items = { "key_a", "key_b" }` | Any one of these items |
+| `jobAndItem` | With both `jobs` and `items`: `false` = job **or** item, `true` = job **and** item |
+| `citizenIDs = { "ABC12345" }` | If set, the player's citizen ID must also be in this list |
 
-**Icon Reference:**  
-Use any [FontAwesome](https://fontawesome.com/icons) icon name if ox_lib is enabled.
+## Troubleshooting
 
-**Validation Notes:**  
-- Ensure all `coords` are valid vector3 values.
-- Blip settings are optional; omit for no map marker.
+| Issue | Fix |
+|---|---|
+| No prompt | Check the server console for config warnings and confirm the player meets the floor's access rules |
+| Two prompts / wrong menu | Two floors overlap; the startup check names them |
+| "You can't use the elevator right now" | Server thinks the player is too far away; raise that floor's `radius` |
 
----
-
-## ❗ Troubleshooting
-
-| Issue                        | Cause                          | Solution                       |
-|------------------------------|-------------------------------|-------------------------------|
-| Elevator not showing         | Config error or missing coords | Check `config.lua` for typos   |
-| UI prompt not appearing      | ox_lib not installed           | Install and ensure ox_lib      |
-| Teleport fails               | Invalid vector3                | Verify coordinates             |
-| Debug info missing           | Debug mode off                 | Set `Config.Debug = true`      |
-
----
-
-## 📄 License / Usage Rules
+## License
 
 - Do not sell or redistribute for profit
 - Do not remove author credit
-- Modifications allowed for personal/server use only
+- Modifications allowed for personal/server use
 - Attribution required in all forks and derivatives
 
----
-
-## 🙏 Credit
-
-- Script by gldnrmz
-- UI enhancements via [ox_lib](https://github.com/overextended/ox_lib)
-- Inspired by the FiveM developer community
-
----
-
-## 📑 License Footer
-
-Attribution is required. Redistribution is permitted for non-commercial use only. Do not remove credit or sell this resource.
+Script by GLDNRMZ. UI by [ox_lib](https://github.com/overextended/ox_lib).
