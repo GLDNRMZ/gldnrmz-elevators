@@ -20,9 +20,12 @@ Configurable elevators and teleport points for FiveM. Walk up to a floor, press 
 |---|---|
 | OneSync | enabled on the server |
 | ox_lib (3.x) | https://github.com/overextended/ox_lib |
-| community_bridge | https://github.com/TheOrderFivem/community_bridge |
+| community_bridge **0.13.6+** (Qbox, QBCore or ESX) | https://github.com/TheOrderFivem/community_bridge |
 
 ## Installation
+
+1. Add your elevators to `Config.Elevators` in `config.lua` (see below). Any items used in access rules must exist in your inventory.
+2. Start it after its dependencies:
 
 ```
 ensure ox_lib

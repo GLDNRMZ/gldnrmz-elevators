@@ -6,7 +6,7 @@ use_experimental_fxv2_oal 'yes'
 name 'gldnrmz-elevators'
 author 'GLDNRMZ'
 description 'Configurable elevators and teleport points with server-side access checks'
-version '2.0.0'
+version '2.0.1'
 repository 'https://github.com/GLDNRMZ/gldnrmz-elevators'
 
 dependencies {
