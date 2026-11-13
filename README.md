@@ -2,7 +2,7 @@
 
 Configurable elevators and teleport points for FiveM. Walk up to a floor, press **E**, pick a destination from an ox_lib menu.
 
-## Features
+## ✨ Features
 
 - Any number of elevators, each with any number of floors
 - Per-floor access by job + minimum grade, items, and citizen ID
@@ -14,15 +14,15 @@ Configurable elevators and teleport points for FiveM. Walk up to a floor, press 
 - Prompt via community_bridge HelpText, ox_lib TextUI, or arp_ui
 - Startup config check: warns about missing coords, single-floor elevators, and overlapping floors
 
-## Requirements
+## 📦 Requirements
 
 | Dependency | Link |
 |---|---|
-| OneSync | enabled on the server |
-| ox_lib (3.x) | https://github.com/overextended/ox_lib |
-| community_bridge **0.13.6+** (Qbox, QBCore or ESX) | https://github.com/TheOrderFivem/community_bridge |
+| [OneSync](https://docs.fivem.net/docs/scripting-reference/onesync/) | enabled on the server |
+| [ox_lib](https://github.com/overextended/ox_lib) (3.x) | https://github.com/overextended/ox_lib |
+| [community_bridge](https://github.com/TheOrderFivem/community_bridge) **0.13.6+** ([Qbox](https://github.com/Qbox-project/qbx_core), [QBCore](https://github.com/qbcore-framework/qb-core) or [ESX](https://github.com/esx-framework/esx_core)) | https://github.com/TheOrderFivem/community_bridge |
 
-## Installation
+## ⚡ Installation
 
 1. Add your elevators to `Config.Elevators` in `config.lua` (see below). Any items used in access rules must exist in your inventory.
 2. Start it after its dependencies:
@@ -33,7 +33,7 @@ ensure community_bridge
 ensure gldnrmz-elevators
 ```
 
-## Configuration
+## ⚙️ Configuration
 
 Everything lives in [config.lua](config.lua).
 
@@ -84,7 +84,7 @@ A floor with no rules is open to everyone. Rules apply both to calling the eleva
 | `jobAndItem` | With both `jobs` and `items`: `false` = job **or** item, `true` = job **and** item |
 | `citizenIDs = { "ABC12345" }` | If set, the player's citizen ID must also be in this list |
 
-## Troubleshooting
+## ❗ Troubleshooting
 
 | Issue | Fix |
 |---|---|
@@ -92,7 +92,7 @@ A floor with no rules is open to everyone. Rules apply both to calling the eleva
 | Two prompts / wrong menu | Two floors overlap; the startup check names them |
 | "You can't use the elevator right now" | Server thinks the player is too far away; raise that floor's `radius` |
 
-## License
+## 📄 License
 
 - Do not sell or redistribute for profit
 - Do not remove author credit
@@ -100,3 +100,16 @@ A floor with no rules is open to everyone. Rules apply both to calling the eleva
 - Attribution required in all forks and derivatives
 
 Script by GLDNRMZ. UI by [ox_lib](https://github.com/overextended/ox_lib).
+
+<!-- gldnrmz-links -->
+---
+
+## 🔗 Links
+
+<p align="center">
+  <a href="https://discord.gg/7YHJ7774jA"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" /></a>
+  <a href="https://forum.cfx.re/u/gldnrmz/summary"><img src="https://img.shields.io/badge/Cfx.re-F40552?style=for-the-badge&logoColor=white" alt="Cfx.re forum" /></a>
+  <a href="https://5metrics.dev/resources?search=gldnrmz"><img src="https://img.shields.io/badge/5Metrics-00BFFF?style=for-the-badge&logoColor=white" alt="5Metrics" /></a>
+  <a href="https://gldnrmz.tebex.io"><img src="https://img.shields.io/badge/Tebex-FFD700?style=for-the-badge&logoColor=black" alt="Tebex store" /></a>
+  <a href="https://www.buymeacoffee.com/gldnrmz"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FF813F?style=for-the-badge&logo=buymeacoffee&logoColor=white" alt="Buy me a coffee" /></a>
+</p>
