@@ -94,12 +94,13 @@ A floor with no rules is open to everyone. Rules apply both to calling the eleva
 
 ## 📄 License
 
-- Do not sell or redistribute for profit
-- Do not remove author credit
-- Modifications allowed for personal/server use
-- Attribution required in all forks and derivatives
+**GLDNRMZ Script License** - see [LICENSE](LICENSE).
 
-Script by GLDNRMZ. UI by [ox_lib](https://github.com/overextended/ox_lib).
+- ✅ Run it on your own server and edit it for that server
+- ❌ Don't sell it, re-upload or share it (free or paid), or put it in a pack or server build
+- ❌ Don't remove the credits or claim it as your own
+
+Need something else, like a commercial license? Ask on [Discord](https://discord.gg/7YHJ7774jA).
 
 <!-- gldnrmz-links -->
 ---
