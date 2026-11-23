@@ -1,6 +1,6 @@
 local Config = {}
 
--- Prompt style: "bridge" (community_bridge HelpText), "ox_lib" (lib.showTextUI) or "arp_ui"
+-- Prompt style: "bridge" (community_bridge HelpText), "ox_lib" (lib.showTextUI) or "gldnrmz-ui"
 Config.TextUI = "bridge"
 
 Config.WaitTime = 2000       -- Minimum time (ms) the screen stays black during a trip

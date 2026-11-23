@@ -11,7 +11,7 @@ Configurable elevators and teleport points for FiveM. Walk up to a floor, press 
 - Uses `lib.points`: no per-frame loop while you're away from an elevator
 - Waits for collision to load before fading back in, so players don't fall through interiors
 - Blocks use while in a vehicle, dead, cuffed, or ragdolled
-- Prompt via community_bridge HelpText, ox_lib TextUI, or arp_ui
+- Prompt via community_bridge HelpText, ox_lib TextUI, or gldnrmz-ui
 - Startup config check: warns about missing coords, single-floor elevators, and overlapping floors
 
 ## 📦 Requirements
@@ -39,7 +39,7 @@ Everything lives in [config.lua](config.lua).
 
 | Option | Default | Description |
 |---|---|---|
-| `TextUI` | `"bridge"` | `"bridge"`, `"ox_lib"` or `"arp_ui"` |
+| `TextUI` | `"bridge"` | `"bridge"`, `"ox_lib"` or `"gldnrmz-ui"` |
 | `WaitTime` | `2000` | Minimum ms the screen stays black during a trip |
 | `DefaultRadius` | `1.0` | Interaction radius when a floor doesn't set one |
 | `ShowLockedFloors` | `true` | Show locked floors greyed out instead of hiding them |

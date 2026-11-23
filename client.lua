@@ -16,9 +16,9 @@ local busy = false      -- a menu request or trip is in progress
 local function hidePrompt()
     if not promptText then return end
 
-    if Config.TextUI == 'arp_ui' then
+    if Config.TextUI == 'gldnrmz-ui' or Config.TextUI == 'arp_ui' then -- arp_ui: old name
         -- Pass the text so only our entry is removed; Hide() alone clears every script's prompt.
-        pcall(function() exports.arp_ui:Hide(promptText) end)
+        pcall(function() exports['gldnrmz-ui']:Hide(promptText) end)
     elseif Config.TextUI == 'ox_lib' then
         lib.hideTextUI()
     elseif Bridge and Bridge.HelpText then
@@ -32,8 +32,8 @@ local function showPrompt(text)
     if promptText == text then return end
     hidePrompt()
 
-    if Config.TextUI == 'arp_ui' then
-        pcall(function() exports.arp_ui:Show('E', text) end)
+    if Config.TextUI == 'gldnrmz-ui' or Config.TextUI == 'arp_ui' then -- arp_ui: old name
+        pcall(function() exports['gldnrmz-ui']:Show('E', text) end)
     elseif Config.TextUI == 'ox_lib' then
         lib.showTextUI(('[E] %s'):format(text))
     elseif Bridge and Bridge.HelpText then
